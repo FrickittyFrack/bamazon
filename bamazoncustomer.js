@@ -7,7 +7,7 @@ var connection = mysql.createConnection({
   
     user: "root",
   
-    password: "",
+    password: "Sheldon$7",
     database: "bamazon"
 });
   
@@ -44,24 +44,6 @@ function whatYouWant() {
             }
         });
 };
-
-function artistSearch() {
-    inquirer
-      .prompt({
-        name: "artist",
-        type: "input",
-        message: "What artist would you like to search for?"
-      })
-      .then(function(answer) {
-        var query = "SELECT position, song, year FROM top5000 WHERE ?";
-        connection.query(query, { artist: answer.artist }, function(err, res) {
-          for (var i = 0; i < res.length; i++) {
-            console.log("Position: " + res[i].position + " || Song: " + res[i].song + " || Year: " + res[i].year);
-          }
-          runSearch();
-        });
-      });
-  }
 
 function whatYouWantBuy() {
     inquirer

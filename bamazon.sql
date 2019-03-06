@@ -13,3 +13,5 @@ CREATE TABLE products (
     PRIMARY KEY (item_id)
 );
 
+USE bamazon;
+SELECT * FROM products;
