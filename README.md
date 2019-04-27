@@ -74,11 +74,11 @@ If not, they are asked again
 
 If yes, they are then asked for an amount
 
-![Screenshot of MySQL](https://github.com/FrickittyFrack/bamazon/raw/master/images/cap-bought-item.PNG)
+![Screenshot of MySQL](https://github.com/FrickittyFrack/bamazon/raw/master/images/cap-yes.PNG)
 
 Then shown the total and prompted to buy more or leave
 
-![Screenshot of MySQL](https://github.com/FrickittyFrack/bamazon/raw/master/images/cap-yes.PNG)
+![Screenshot of MySQL](https://github.com/FrickittyFrack/bamazon/raw/master/images/cap-bought-item.PNG)
 
 Leaving ends the connection
 
