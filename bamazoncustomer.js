@@ -7,7 +7,7 @@ var connection = mysql.createConnection({
   
     user: "root",
   
-    password: "Sheldon$7",
+    password: "",
     database: "bamazon"
 });
   
@@ -18,18 +18,23 @@ connection.connect(function(err) {
 
 function whatYouWant() {
     inquirer
-        .prompt({
-            name: "action",
-            type: "list",
-            message: "What you want??",
-            choices: [
-                "I WANT TO BUY SOMETHING",
-                "I just have a question...",
-                "I'm just here to look, geez",
-            ]
-        })
+    .prompt({
+        name: "action",
+        type: "list",
+        message: "What you want??",
+        choices: [
+            "I need to see what you have in stock!!",
+            "I WANT TO BUY SOMETHING",
+            "I just have a question...",
+            "I'm just here to look, geez",
+        ]
+    })
         .then(function(answer) {
             switch (answer.action) {
+                case "I need to see what you have in stock!!":
+                    listItemsInStock();
+                    break;
+
                 case "I WANT TO BUY SOMETHING":
                     whatYouWantBuy();
                     break;
@@ -47,51 +52,123 @@ function whatYouWant() {
 
 function whatYouWantBuy() {
     inquirer
-        .prompt(
-            {
-            name: "Confirm",
-            type: "confirm",
-            message: "You have ID for what you want??",
-            defult: true
-            },
-            {
-            name: "id",
-            tpye: "input",
-            message: "Then enter ID for what you want"
-            }
-        )
-        .then(function(answer) {
-            var query = "SELECT item_id, product_name, department_name, price, stock_quantity FROM bamazon * WHERE ?";
-            connection.query(query, { id: answer.id }, function(err, res) {
-                for (var i = 0; i < res.length; i++) {
-                    console.log(
-                        "ID: " 
-                        + res[i].id
-                        + "Product: "
-                        + res[i].product_name
-                        + "Department: "
-                        + res[i].department_name
-                        + "Price: "
-                        + res[i].price
-                        + "Quantity in Stock: "
-                        + res[i].stock_quantity
-                    );
-                };
+    .prompt(
+        {
+        name: "Confirm",
+        type: "list",
+        message: "You have ID for what you want??",
+        choices: [
+            "Yes",
+            "Nope"
+        ]
+        },
+    )
+    .then(function(confirm) {
+        switch (confirm.Confirm) {
+            case "Yes":
+                inquirer
+                .prompt(
+                    {
+                    name: "idInput",
+                    type: "input",
+                    message: "Then enter ID for what you want"
+                    }
+                )
+                .then(function(input) {
+                    connection.query(
+                        "SELECT * FROM products WHERE item_id = ?", 
+                        [input.idInput], 
+                        function(err, res) {
+                            if (err) throw err;
 
-                whatYouWant();
+                            var product = res[0];
 
-            });
-        });
+                            console.log(
+                                "\n--------------------------------\n" +
+                                "\nID: " + product.item_id +
+                                "\nProduct: " + product.product_name +
+                                "\nDepartment: " + product.department_name +
+                                "\nPrice: " + product.price +
+                                "\nIn Stock: " + product.stock_quantity +
+                                "\n\n--------------------------------\n"
+                            );
+                            
+                            inquirer
+                            .prompt(
+                                {
+                                name: "YouSure",
+                                type: "confirm",
+                                message: "You want " + product.product_name + "?",
+                                default: true
+                                }
+                            )
+                            .then(function(response) {
+                                if(response.YouSure === true) {
+                                    inquirer
+                                    .prompt(
+                                        {
+                                        name: "HowMany",
+                                        type: "input",
+                                        message: "How many " + product.product_name + " you want?",
+                                        }
+                                    )
+                                    .then(function(number) {
+                                        
+                                        var newQuantity = product.stock_quantity - number.HowMany;
+                                        
+                                        connection.query(
+                                            "UPDATE products SET stock_quantity = ? WHERE item_id = ?", 
+                                            [newQuantity, product.item_id], 
+                                            function(err, res) {
+                                                console.log(
+                                                    "\nHere,\n\nI give you " +
+                                                    number.HowMany + " " +
+                                                    product.product_name +
+                                                    "\n"
+                                                );
+                                                inquirer
+                                                .prompt(
+                                                    {
+                                                    name: "LeaveOrBuy",
+                                                    type: "list",
+                                                    message: "Now leave my store or buy something else",
+                                                    choices: [
+                                                        "Leave store",
+                                                        "Buy more"
+                                                    ]
+                                                    }
+                                                )
+                                                .then(function(choice) {
+                                                    switch(choice.LeaveOrBuy) {
+                                                        case "Leave store":
+                                                            console.log("You have good day now!");
+                                                            connection.end();
+                                                            break;
+                                                        case "Buy more":
+                                                            whatYouWantBuy();
+                                                    };
+                                                });
+                                        });
+                                    });
+                                } else {
+                                    whatYouWantBuy();
+                                }
+                            });
+                    });
+                });
+                break;
+            
+            case "Nope":
+                console.log("Then come back when you do!!");
+                connection.end();
+                break;
+        }
+    });
 };
 
 function whatYourQuestionThen() {
     inquirer
     .prompt(
-        {
-        name: "question",
-        type: "input",
-        message: "What your question then??"
-        },
         {
         name: "goaway",
         type: "list",
@@ -105,6 +182,7 @@ function whatYourQuestionThen() {
     .then(function(response) {
         switch (response.goaway) {
             case "You have terrible customer service...":
+                console.log("Yes, now leave!");
                 connection.end();
                 break;
             case "Ok...":
@@ -114,5 +192,8 @@ function whatYourQuestionThen() {
     });
 };
 
-
+function listItemsInStock() {
+    console.log("ITEMS IN STOCK");
+    connection.end();
+};
 
