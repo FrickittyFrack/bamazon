@@ -1,21 +1,25 @@
 var mysql = require("mysql");
 var inquirer = require("inquirer");
 
+// Define where to get connection for MySQL
 var connection = mysql.createConnection({
     host: "localhost",
     port: 3306,
   
     user: "root",
-  
+    
+    // Input personal password for MySQL
     password: "",
     database: "bamazon"
 });
-  
+
+// Establish connection with MySQL  
 connection.connect(function(err) {
     if (err) throw err;
     whatYouWant();
 });
 
+// Prompt customer to select 1 of 4 paths
 function whatYouWant() {
     inquirer
     .prompt({
@@ -44,12 +48,43 @@ function whatYouWant() {
                     break;
                 
                 case "I'm just here to look, geez":
+                    console.log("Looking only for customer, get out!");
                     connection.end();
                     break;
             }
         });
 };
 
+// Lists items in stock
+function listItemsInStock() {
+    connection.query("SELECT * FROM products", function(err, recievedProducts) {
+
+        if(err) throw err;
+        
+        for(var i = 0; i < recievedProducts.length; i++) {
+
+            var product = recievedProducts[i];
+            
+            console.log(
+                "\n--------------------------------\n" +
+                "\nID: " + product.item_id +
+                "\nProduct: " + product.product_name +
+                "\nDepartment: " + product.department_name +
+                "\nPrice: " + product.price +
+                "\nIn Stock: " + product.stock_quantity +
+                "\n\n--------------------------------\n"
+            );
+            
+        };
+
+        console.log("That's what we have, now...\n\n");
+
+        whatYouWant();
+        
+    });
+};
+
+// Handle buying path
 function whatYouWantBuy() {
     inquirer
     .prompt(
@@ -124,7 +159,10 @@ function whatYouWantBuy() {
                                                     "\nHere,\n\nI give you " +
                                                     number.HowMany + " " +
                                                     product.product_name +
-                                                    "\n"
+                                                    "\n~~~~~~~~~~~~~~~~~~~~~" +
+                                                    "\nYour total $" +
+                                                    (number.HowMany * product.price) +
+                                                    "\n~~~~~~~~~~~~~~~~~~~~~\n\n"
                                                 );
                                                 inquirer
                                                 .prompt(
@@ -166,8 +204,11 @@ function whatYouWantBuy() {
     });
 };
 
+// Handle question path
 function whatYourQuestionThen() {
     inquirer
+
+    // Only gives customers 2 options: both end connection
     .prompt(
         {
         name: "goaway",
@@ -191,9 +232,3 @@ function whatYourQuestionThen() {
         }
     });
 };
-
-function listItemsInStock() {
-    console.log("ITEMS IN STOCK");
-    connection.end();
-};
-
